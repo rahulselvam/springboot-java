@@ -8,9 +8,9 @@ COPY src ./src
 RUN gradle bootJar --no-daemon -x test
 
 # --- Stage 2: Runtime stage ---
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup --system spring && adduser --system --ingroup spring spring
 USER spring:spring
 # Gradle puts the executable jar inside build/libs/
 COPY --from=builder /app/build/libs/*.jar app.jar
