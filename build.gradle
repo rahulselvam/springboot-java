@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.0'
+    id 'org.springframework.boot' version '3.4.10'
     id 'io.spring.dependency-management' version '1.1.6'
 }
 
@@ -16,6 +16,7 @@ repositories {
 }
 
 ext['tomcat.version'] = '10.1.55'
+ext['spring-core.version'] = '6.2.11'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
