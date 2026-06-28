@@ -1,4 +1,4 @@
-name: Java CI/CD Container Pipeline
+name: Java DevSecOps Container Pipeline
 
 on:
   push:
@@ -7,38 +7,77 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-push-image:
+  build-secure-image:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
+      security-events: write # Required to upload SARIF security scans to GitHub Advanced Security
 
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v4
 
+    # ==========================================
+    # LAYER 1 & 2: SCAN SOURCE CODE AND DEPENDENCIES (SAST / SCA)
+    # ==========================================
+    - name: Run Trivy FS (FileSystem) Scan
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-fs-results.sarif'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Upload FS Scan Results to GitHub Security Tab
+      if: always() # Ensures logs are uploaded even if vulnerabilities are found
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-fs-results.sarif'
+        category: 'trivy-fs'
+
+    # ==========================================
+    # LAYER 3: CONTAINER RUNTIME LAYER SCANNING
+    # ==========================================
     - name: Log in to GHCR
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and Push Self-Contained Docker Image
+    - name: Build Local Image for Evaluation
       run: |
         IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+        docker build -t $IMAGE_NAME:scan-target .
+        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
 
-        #  Generate a clean Date-Time Timestamp (Format: YYYYMMDD-HHMMSS)
-        #  Force the Linux date utility to evaluate using Indian Standard Time
+    - name: Run Trivy Image Scan
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        image-ref: '${{ env.IMAGE_NAME }}:scan-target'
+        format: 'sarif'
+        output: 'trivy-image-results.sarif'
+        severity: 'CRITICAL,HIGH'
+
+    - name: Upload Image Scan Results to GitHub Security Tab
+      if: always()
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-image-results.sarif'
+        category: 'trivy-image'
+
+    # ==========================================
+    # FINAL STEP: PUSH COOP/VERIFIED IMAGE
+    # ==========================================
+    - name: Tag and Push Verified Image to GHCR
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
         TIMESTAMP=$(TZ="Asia/Kolkata" date +'%Y%m%d-%H%M%S')_IST
         
-        echo "Generated Image Tag: $TIMESTAMP"
+        docker tag ${{ env.IMAGE_NAME }}:scan-target ${{ env.IMAGE_NAME }}:$TIMESTAMP
+        docker tag ${{ env.IMAGE_NAME }}:scan-target ${{ env.IMAGE_NAME }}:latest
         
-        # 3. Build the container, mapping both the fixed timestamp and moving latest pointer
-        docker build \
-          -t $IMAGE_NAME:$TIMESTAMP \
-          -t $IMAGE_NAME:latest .
-          
-        # 4. Push all variants to the Container Registry
-        docker push --all-tags $IMAGE_NAME
+        docker push --all-tags ${{ env.IMAGE_NAME }}
