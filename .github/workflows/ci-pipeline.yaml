@@ -28,10 +28,17 @@ jobs:
     - name: Build and Push Self-Contained Docker Image
       run: |
         IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+        #  Generate a clean Date-Time Timestamp (Format: YYYYMMDD-HHMMSS)
+        #  Force the Linux date utility to evaluate using Indian Standard Time
+        TIMESTAMP=$(TZ="Asia/Kolkata" date +'%Y%m%d-%H%M%S')_IST
         
+        echo "Generated Image Tag: $TIMESTAMP"
+        
+        # 3. Build the container, mapping both the fixed timestamp and moving latest pointer
         docker build \
-          -t $IMAGE_NAME:latest \
-          -t $IMAGE_NAME:${{ github.sha }} .
+          -t $IMAGE_NAME:$TIMESTAMP \
+          -t $IMAGE_NAME:latest .
           
-        docker push $IMAGE_NAME:latest
-        docker push $IMAGE_NAME:${{ github.sha }}
+        # 4. Push all variants to the Container Registry
+        docker push --all-tags $IMAGE_NAME
