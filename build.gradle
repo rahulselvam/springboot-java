@@ -34,7 +34,7 @@ tasks.named('test') {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
+            artifact bootJar
         }
     }
     // Notice: The "repositories" block is intentionally left blank. 
