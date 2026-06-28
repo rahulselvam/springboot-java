@@ -39,7 +39,6 @@ jobs:
     - name: Build and Publish Artifact to Nexus
       if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only publish on actual commits to main
       env:
-        NEXUS_TARGET_URL: https://maven.pkg.github.com/${{ github.repository }}
-        NEXUS_USER: ${{ github.actor }}
-        NEXUS_PASS: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: ./gradlew clean bootJar publish -x test
