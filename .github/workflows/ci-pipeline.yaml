@@ -9,7 +9,7 @@ on:
 jobs:
   security-and-build:
     # Target your specific EC2 self-hosted runner pool
-    runs-on: ec2-runner
+    runs-on: [self-hosted, linux, ec2-runner]
     
     permissions:
       contents: read
