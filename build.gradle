@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.sonarqube' version '5.0.0.4638'
 }
 
 group = 'com.github.rahulselvam'
@@ -26,6 +27,13 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sonar {
+    properties {
+        property "sonar.projectName", "pipeline-test"
+        property "sonar.projectKey", "pipeline-test"
+    }
 }
 
 tasks.named('test') {
