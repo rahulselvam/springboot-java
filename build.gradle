@@ -15,7 +15,7 @@ repositories {
     mavenCentral()
 }
 
-ext['tomcat.version'] = '10.1.45'
+ext['tomcat.version'] = '10.1.55'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
