@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.14'
     id 'io.spring.dependency-management' version '1.1.6'
-    id 'org.sonarqube' version '5.0.0.4638'
+    id 'org.sonarqube' version '6.0.0.5144'
 }
 
 group = 'com.github.rahulselvam'
@@ -16,8 +16,10 @@ repositories {
     mavenCentral()
 }
 
-ext['tomcat.version'] = '10.1.55'
-ext['spring-core.version'] = '6.2.11'
+ext {
+    set('tomcat.version', '10.1.55')
+    set('spring-framework.version', '6.2.11') // Overrides spring-core and all sibling dependencies cleanly
+}
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
