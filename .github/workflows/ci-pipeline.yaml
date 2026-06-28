@@ -39,7 +39,7 @@ jobs:
         NEXUS_USER: ${{ secrets.NEXUS_USERNAME }}
         NEXUS_PASS: ${{ secrets.NEXUS_PASSWORD }}
       run: |
-        ./gradlew publish \
+        ./gradlew clean bootJar publish \
           -x test \
           -Ppublishing.repositories.maven.url="${{ env.NEXUS_TARGET_URL }}/repository/maven-snapshots/" \
           -Ppublishing.repositories.maven.credentials.username="${{ env.NEXUS_USER }}" \
