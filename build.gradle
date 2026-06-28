@@ -32,9 +32,19 @@ tasks.named('test') {
 
 // 2. Added decoupled Maven publication metadata
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/rahulselvam/springboot-java")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
     publications {
-        mavenJava(MavenPublication) {
-            artifact bootJar
+        gpr(MavenPublication) {
+            from(components.java)
         }
     }
 }
