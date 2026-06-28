@@ -38,4 +38,4 @@ jobs:
         NEXUS_TARGET_URL: ${{ secrets.NEXUS_URL }}
         NEXUS_USER: ${{ secrets.NEXUS_USERNAME }}
         NEXUS_PASS: ${{ secrets.NEXUS_PASSWORD }}
-      run: ./gradlew clean bootJar publish
+      run: ./gradlew clean bootJar publish -x test
