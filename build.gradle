@@ -37,6 +37,16 @@ publishing {
             artifact bootJar
         }
     }
-    // Notice: The "repositories" block is intentionally left blank. 
-    // This forces Gradle to look for command-line injections from your pipeline.
+    repositories {
+        maven {
+            // Strictly fetch values from system environment variables
+            url = System.getenv('NEXUS_TARGET_URL')
+            allowInsecureProtocol = true // Required since localhost/ngrok routes run over HTTP
+            
+            credentials {
+                username = System.getenv('NEXUS_USER')
+                password = System.getenv('NEXUS_PASS')
+            }
+        }
+    }
 }
