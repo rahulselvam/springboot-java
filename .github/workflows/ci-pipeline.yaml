@@ -41,13 +41,6 @@ jobs:
     #     client_secret: ${{ secrets.CX_CLIENT_SECRET }}
     #     project_name: ${{ github.event.repository.name }}
 
-    - name: Run Trivy Scan for SonarQube
-      uses: aquasecurity/trivy-action@v0.36.0
-      with:
-        scan-type: 'fs'
-        format: 'json'
-        output: 'trivy-report.json'
-
     # ==========================================
     # STAGE 2: SONARQUBE QUALITY GATE & SAST
     # ==========================================
@@ -55,7 +48,7 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # Points directly to http://localhost:9000
-      run: ./gradlew sonar --no-daemon -Dsonar.externalIssuesReportPaths=trivy-report.json
+      run: ./gradlew sonar --no-daemon
 
     # ==========================================
     # STAGE 3: BLACK DUCK SCA SCAN (Dependencies)
@@ -66,6 +59,24 @@ jobs:
     #     blackduck-url: ${{ secrets.BLACKDUCK_URL }}
     #     blackduck-api-token: ${{ secrets.BLACKDUCK_TOKEN }}
     #     scan-mode: 'RAPID' 
+
+    # ==========================================
+    # STAGE 3: TRIVY SCA SCAN & PUSH TO GITHUB
+    # ==========================================
+    - name: Run Trivy Vulnerability Scanner (SCA)
+      uses: aquasecurity/trivy-action@v0.36.0  # Uses the latest stable action tag for 2026
+      with:
+        scan-type: 'fs'
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'HIGH,CRITICAL'
+
+    - name: Upload Trivy Scan Results to GitHub Security Tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always() # Ensures reports upload even if vulnerabilities are found
+      with:
+        sarif_file: 'trivy-results.sarif'
 
     # ==========================================
     # STAGE 4: PRODUCTION COMPILATION & GHCR PUSH
