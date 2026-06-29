@@ -19,6 +19,8 @@ jobs:
     steps:
     - name: Checkout Source Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Ensures full history is available for TruffleHog secret scanning
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
