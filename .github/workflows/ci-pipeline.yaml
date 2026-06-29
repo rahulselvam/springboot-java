@@ -67,16 +67,17 @@ jobs:
       uses: aquasecurity/trivy-action@v0.36.0  # Uses the latest stable action tag for 2026
       with:
         scan-type: 'fs'
-        ignore-unfixed: true
+        scan-ref: '.'
         format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'HIGH,CRITICAL'
+        output: 'trivy-fs-results.sarif'
+        severity: 'CRITICAL,HIGH'
 
-    - name: Upload Trivy Scan Results to GitHub Security Tab
+    - name: Upload FS Scan Results to GitHub Security Tab
+      if: always() # Ensures logs are uploaded even if vulnerabilities are found
       uses: github/codeql-action/upload-sarif@v3
-      if: always() # Ensures reports upload even if vulnerabilities are found
       with:
-        sarif_file: 'trivy-results.sarif'
+        sarif_file: 'trivy-fs-results.sarif'
+        category: 'trivy-fs'
 
     # ==========================================
     # STAGE 4: PRODUCTION COMPILATION & GHCR PUSH
