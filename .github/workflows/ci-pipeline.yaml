@@ -41,6 +41,13 @@ jobs:
     #     client_secret: ${{ secrets.CX_CLIENT_SECRET }}
     #     project_name: ${{ github.event.repository.name }}
 
+    - name: Run Trivy Scan for SonarQube
+      uses: aquasecurity/trivy-action@v0.28.0
+      with:
+        scan-type: 'fs'
+        format: 'json'
+        output: 'trivy-report.json'
+
     # ==========================================
     # STAGE 2: SONARQUBE QUALITY GATE & SAST
     # ==========================================
@@ -48,7 +55,7 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # Points directly to http://localhost:9000
-      run: ./gradlew sonar --no-daemon
+      run: ./gradlew sonar --no-daemon -Dsonar.externalIssuesReportPaths=trivy-report.json
 
     # ==========================================
     # STAGE 3: BLACK DUCK SCA SCAN (Dependencies)
